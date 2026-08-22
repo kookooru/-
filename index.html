@@ -43,12 +43,7 @@
       z-index: 100;
     }
 
-    .brand {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--primary-color);
-    }
-
+    .brand { font-size: 20px; font-weight: 800; color: var(--primary-color); }
     .table-badge {
       background-color: var(--primary-color);
       color: #fff;
@@ -70,7 +65,6 @@
       border-bottom: 1px solid var(--border-color);
       white-space: nowrap;
     }
-
     .category-nav::-webkit-scrollbar { display: none; }
 
     .cat-btn {
@@ -83,19 +77,13 @@
       color: var(--text-muted);
       cursor: pointer;
     }
-
     .cat-btn.active {
       background-color: var(--primary-color);
       color: #fff;
       border-color: var(--primary-color);
     }
 
-    .menu-container {
-      padding: 16px;
-      display: grid;
-      gap: 16px;
-    }
-
+    .menu-container { padding: 16px; display: grid; gap: 16px; }
     .menu-card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
@@ -104,12 +92,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
     }
 
     .menu-info { flex: 1; padding-right: 12px; }
     .menu-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
-    .menu-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.3; }
+    .menu-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
     .menu-price { font-size: 16px; font-weight: 800; color: var(--primary-color); }
 
     .add-btn {
@@ -125,16 +112,13 @@
 
     .cart-bar {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 0; left: 0; right: 0;
       background-color: var(--card-bg);
       border-top: 1px solid var(--border-color);
       padding: 12px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
       z-index: 200;
     }
 
@@ -177,38 +161,50 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .modal-title { font-size: 18px; font-weight: 800; }
     .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
 
-    .pay-box {
-      background-color: #faf6f0;
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 16px;
-      margin-top: 16px;
-      text-align: center;
+    /* 결제 수단 선택 라디오 그룹 */
+    .pay-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0;
     }
 
-    .pay-btn {
-      width: 100%;
-      padding: 14px;
-      border-radius: 12px;
-      font-size: 15px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      margin-top: 8px;
+    .pay-option-label {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 8px;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 15px;
+      transition: all 0.2s;
     }
 
-    .btn-toss { background-color: var(--toss-blue); color: #fff; }
-    .btn-kakao { background-color: var(--kakao-yellow); color: #191919; }
+    .pay-option-label.selected {
+      border-color: var(--primary-color);
+      background-color: #fcf4f4;
+    }
+
+    .pay-option-label input[type="radio"] { display: none; }
+
+    .bank-info-box {
+      background-color: #faf6f0;
+      border: 1px solid var(--border-color);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: var(--text-main);
+      text-align: center;
+      margin-bottom: 16px;
+    }
   </style>
 </head>
 <body>
@@ -231,70 +227,79 @@
       <div class="cart-info">총 <span id="cart-count">0</span>개 선택</div>
       <div class="cart-total" id="cart-total-price">0원</div>
     </div>
-    <button class="btn-order" onclick="openOrderModal()">주문하기</button>
+    <button class="btn-order" onclick="openOrderModal()">결제하기</button>
   </div>
 
-  <!-- 주문 확인 & 결제 모달 -->
+  <!-- 주문 및 결제수단 선택 모달 -->
   <div class="modal-overlay" id="order-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">주문 내역 확인</div>
+        <div class="modal-title">주문 내역 및 결제</div>
         <button class="close-btn" onclick="closeOrderModal()">✕</button>
       </div>
 
-      <div id="modal-cart-items" style="display: grid; gap: 10px; margin-bottom: 20px;"></div>
+      <!-- 내역 요약 -->
+      <div id="modal-cart-items" style="display: grid; gap: 8px; margin-bottom: 16px; max-height: 120px; overflow-y: auto;"></div>
 
-      <div class="pay-box">
-        <div style="font-size: 14px; color: var(--text-muted); margin-bottom: 4px;">최종 결제 금액</div>
-        <div style="font-size: 24px; font-weight: 800; color: var(--primary-color);" id="modal-total-price">0원</div>
-        
-        <div style="margin-top: 16px; font-size: 13px; color: var(--text-muted); line-height: 1.4;">
-          아래 버튼을 눌러 간편 송금 후<br><b>[주문 확정하기]</b> 버튼을 눌러주세요.
-        </div>
-
-        <button class="pay-btn btn-toss" onclick="payWithToss()">💙 토스로 간편 입금</button>
-        <button class="pay-btn btn-kakao" onclick="payWithKakao()">💛 카카오페이로 간편 입금</button>
+      <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; padding: 12px 0; border-top: 1px solid var(--border-color);">
+        <span>최종 결제 금액</span>
+        <span style="color: var(--primary-color);" id="modal-total-price">0원</span>
       </div>
 
-      <button class="btn-order" style="width: 100%; margin-top: 16px; padding: 16px; font-size: 18px;" onclick="submitOrder()">
-        ✅ 주문 확정하기
+      <!-- 결제 수단 선택 라디오 버튼 -->
+      <div style="font-size: 14px; font-weight: 700; margin-top: 12px;">결제 수단 선택</div>
+      <div class="pay-options">
+        <label class="pay-option-label selected" id="label-toss" onclick="selectPayOption('toss')">
+          <span>💙 토스로 계좌이체</span>
+          <input type="radio" name="payMethod" value="toss" checked>
+        </label>
+        <label class="pay-option-label" id="label-kakao" onclick="selectPayOption('kakao')">
+          <span>💛 카카오페이 송금</span>
+          <input type="radio" name="payMethod" value="kakao">
+        </label>
+        <label class="pay-option-label" id="label-bank" onclick="selectPayOption('bank')">
+          <span>🏦 일반 계좌이체</span>
+          <input type="radio" name="payMethod" value="bank">
+        </label>
+      </div>
+
+      <!-- 계좌번호 안내 영역 -->
+      <div class="bank-info-box" id="bank-info-display">
+        입금 계좌: <b>토스뱅크 1234567890</b>
+      </div>
+
+      <button class="btn-order" style="width: 100%; padding: 16px; font-size: 18px;" onclick="handleFinalOrder()">
+        🚀 결제 앱 이동 및 주문확정
       </button>
     </div>
   </div>
 
   <script>
     // ==========================================
-    // ⚙️ 사장님 설정 영역 (여기 두 곳을 수정하세요)
+    // ⚙️ 사장님 설정 영역
     // ==========================================
     const CONFIG = {
-      // 1. Google Apps Script 웹앱 URL
       SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzNlkiaA2BNRU-Lr_b6XczmuUxboEcvtU0ywd5uEVO8uoWPKXQykwiB4XlcowsuGT2x/exec",
-      
-      // 2. 토스 송금용 계좌 정보 (본인 계좌로 변경)
-      BANK_NAME: "토스뱅크",      // 예: 토스뱅크, 국민은행, 카카오뱅크, 신한은행 등
-      ACCOUNT_NUMBER: "1234567890", // 하이픈(-) 없이 숫자만 입력
-
-      // 3. 카카오페이 송금 QR 코드 링크
-      // (카카오페이 앱 > 송금 > 내 QR코드 > 링크 복사 후 붙여넣기)
-      KAKAO_PAY_LINK: "https://qr.kakaopay.com/YOUR_PERSONAL_QR_CODE"
+      BANK_NAME: "토스뱅크",        // 은행명
+      ACCOUNT_NUMBER: "100052382872",   // 계좌번호 (숫자만)
+      KAKAO_PAY_LINK: "https://qr.kakaopay.com/FHocQNtEp" // 카카오페이 송금 링크
     };
 
     let allMenu = [];
-    let cart = {}; // { menuId: { menu, qty } }
+    let cart = {};
     let currentTable = "1";
+    let selectedPayMethod = "toss";
 
     window.addEventListener('DOMContentLoaded', () => {
-      // URL 파라미터에서 table 번호 가져오기 (?table=3)
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('table')) {
-        currentTable = urlParams.get('table');
-      }
+      if (urlParams.has('table')) currentTable = urlParams.get('table');
       document.getElementById('table-display').innerText = `테이블 ${currentTable}`;
 
+      // 계좌 안내 기본 세팅
+      document.getElementById('bank-info-display').innerHTML = `입금 계좌: <b>${CONFIG.BANK_NAME} ${CONFIG.ACCOUNT_NUMBER}</b>`;
       fetchMenu();
     });
 
-    // 메뉴 불러오기
     async function fetchMenu() {
       try {
         const res = await fetch(`${CONFIG.SCRIPT_URL}?action=menu`);
@@ -309,7 +314,6 @@
       }
     }
 
-    // 카테고리 생성
     function renderCategoryNav() {
       const categories = ['전체', ...new Set(allMenu.map(m => m.category))];
       const navContainer = document.getElementById('category-container');
@@ -326,7 +330,6 @@
       renderMenu(cat);
     }
 
-    // 메뉴 목록 출력
     function renderMenu(category) {
       const container = document.getElementById('menu-container');
       const filtered = category === '전체' ? allMenu : allMenu.filter(m => m.category === category);
@@ -348,7 +351,6 @@
       `).join('');
     }
 
-    // 장바구니 담기
     function addToCart(menuId) {
       const item = allMenu.find(m => m.id === menuId);
       if (!item) return;
@@ -361,11 +363,9 @@
       updateCartBar();
     }
 
-    // 장바구니 상태 업데이트
     function updateCartBar() {
       let totalCount = 0;
       let totalPrice = 0;
-
       Object.values(cart).forEach(c => {
         totalCount += c.qty;
         totalPrice += c.item.price * c.qty;
@@ -375,7 +375,6 @@
       document.getElementById('cart-total-price').innerText = `${totalPrice.toLocaleString()}원`;
     }
 
-    // 모달 제어
     function openOrderModal() {
       if (Object.keys(cart).length === 0) {
         alert('메뉴를 선택해 주세요!');
@@ -389,7 +388,7 @@
         const subtotal = c.item.price * c.qty;
         totalPrice += subtotal;
         return `
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 15px;">
+          <div style="display: flex; justify-content: space-between; font-size: 14px;">
             <div><b>${c.item.name}</b> x${c.qty}</div>
             <div>${subtotal.toLocaleString()}원</div>
           </div>
@@ -404,40 +403,22 @@
       document.getElementById('order-modal').style.display = 'none';
     }
 
-    // 💳 1. 토스 송금 연결 (앱 자동 실행)
-    function payWithToss() {
-      let totalPrice = 0;
-      Object.values(cart).forEach(c => { totalPrice += c.item.price * c.qty; });
-
-      const bank = encodeURIComponent(CONFIG.BANK_NAME);
-      const account = CONFIG.ACCOUNT_NUMBER;
-      
-      // 토스 송금 딥링크 URL
-      const tossUrl = `supertoss://send?bank=${bank}&accountNo=${account}&origin=link&amount=${totalPrice}`;
-      window.location.href = tossUrl;
+    // 결제 수단 선택 옵션
+    function selectPayOption(method) {
+      selectedPayMethod = method;
+      document.querySelectorAll('.pay-option-label').forEach(el => el.classList.remove('selected'));
+      document.getElementById(`label-${method}`).classList.add('selected');
     }
 
-    // 💳 2. 카카오페이 송금 연결
-    function payWithKakao() {
-      if (!CONFIG.KAKAO_PAY_LINK || CONFIG.KAKAO_PAY_LINK.includes("YOUR_")) {
-        alert("카카오페이 링크 설정이 필요합니다.");
-        return;
-      }
-      window.location.href = CONFIG.KAKAO_PAY_LINK;
-    }
-
-    // 주문 접수 제출
-    async function submitOrder() {
-      const items = Object.values(cart).map(c => ({
-        id: c.item.id,
-        name: c.item.name,
-        price: c.item.price,
-        qty: c.qty
-      }));
-
+    // [결제 앱 이동 및 주문확정] 버튼 처리
+    async function handleFinalOrder() {
       let totalPrice = 0;
-      items.forEach(i => totalPrice += i.price * i.qty);
+      const items = Object.values(cart).map(c => {
+        totalPrice += c.item.price * c.qty;
+        return { id: c.item.id, name: c.item.name, price: c.item.price, qty: c.qty };
+      });
 
+      // 1. 주문 데이터 백엔드 전송
       const payload = {
         action: "order",
         table: currentTable,
@@ -454,12 +435,23 @@
 
         const data = await res.json();
         if (data.success) {
-          alert(`주문이 접수되었습니다!\n입금 확인 후 조리가 시작됩니다.`);
+          // 2. 결제 수단별 앱 이동 처리
+          if (selectedPayMethod === 'toss') {
+            const bank = encodeURIComponent(CONFIG.BANK_NAME);
+            const account = CONFIG.ACCOUNT_NUMBER;
+            window.location.href = `supertoss://send?bank=${bank}&accountNo=${account}&origin=link&amount=${totalPrice}`;
+          } else if (selectedPayMethod === 'kakao') {
+            if (CONFIG.KAKAO_PAY_LINK && !CONFIG.KAKAO_PAY_LINK.includes("YOUR_")) {
+              window.location.href = CONFIG.KAKAO_PAY_LINK;
+            }
+          }
+
+          alert(`주문이 성공적으로 접수되었습니다!\n입금이 확인되는 대로 조리가 시작됩니다.`);
           cart = {};
           updateCartBar();
           closeOrderModal();
         } else {
-          alert('주문 등록에 실패했습니다: ' + data.message);
+          alert('주문 등록 실패: ' + data.message);
         }
       } catch (err) {
         alert('서버 통신 중 오류가 발생했습니다.');
