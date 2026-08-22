@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>청춘주막 — 주방 주문 관리 시스템</title>
   <style>
-    /* 주문 페이지 스타일 테마와 통일 */
     :root {
       --bg-main: #fcf8f2;        /* 한지 느낌의 따뜻한 연아이보리 */
       --card-bg: #ffffff;        /* 깔끔한 흰색 카드 */
@@ -251,7 +250,6 @@
 
   <script>
     const CONFIG = {
-      // 본인의 Apps Script 웹 앱 URL을 붙여넣으세요
       SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzNlkiaA2BNRU-Lr_b6XczmuUxboEcvtU0ywd5uEVO8uoWPKXQykwiB4XlcowsuGT2x/exec",
       REFRESH_INTERVAL: 5000 // 5초마다 새로고침
     };
@@ -262,7 +260,8 @@
     });
 
     async function fetchKitchenOrders() {
-      if (!CONFIG.SCRIPT_URL || CONFIG.SCRIPT_URL.includes("여기에_")) {
+      // 주소가 비어있을 때만 체크하도록 조건문 단순화
+      if (!CONFIG.SCRIPT_URL || CONFIG.SCRIPT_URL.trim() === "") {
         renderError("CONFIG.SCRIPT_URL 설정이 필요합니다.");
         return;
       }
@@ -274,9 +273,12 @@
         if (data.success) {
           renderOrders(data.orders || []);
           updateLastTime();
+        } else {
+          renderError("데이터 로드 실패: " + data.message);
         }
       } catch (error) {
         console.error("네트워크 에러:", error);
+        renderError("서버와의 통신 오류가 발생했습니다.");
       }
     }
 
