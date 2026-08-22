@@ -13,8 +13,6 @@
       --border-color: #eee0d0;
       --primary-color: #8b0000;
       --accent-yellow: #f59e0b;
-      --toss-blue: #0064FF;
-      --kakao-yellow: #FEE500;
     }
 
     * {
@@ -167,25 +165,24 @@
     .modal-title { font-size: 18px; font-weight: 800; }
     .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
 
-    /* 결제 수단 선택 라디오 그룹 */
+    /* 모달 내부 결제 수단 추가 영역 */
     .pay-options {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin: 16px 0;
+      gap: 8px;
+      margin: 12px 0;
     }
 
     .pay-option-label {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 16px;
-      border: 2px solid var(--border-color);
-      border-radius: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
       cursor: pointer;
       font-weight: 700;
-      font-size: 15px;
-      transition: all 0.2s;
+      font-size: 14px;
     }
 
     .pay-option-label.selected {
@@ -198,12 +195,12 @@
     .bank-info-box {
       background-color: #faf6f0;
       border: 1px solid var(--border-color);
-      padding: 12px 16px;
-      border-radius: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
       font-size: 13px;
       color: var(--text-main);
       text-align: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
   </style>
 </head>
@@ -227,14 +224,14 @@
       <div class="cart-info">총 <span id="cart-count">0</span>개 선택</div>
       <div class="cart-total" id="cart-total-price">0원</div>
     </div>
-    <button class="btn-order" onclick="openOrderModal()">결제하기</button>
+    <button class="btn-order" onclick="openOrderModal()">주문하기</button>
   </div>
 
   <!-- 주문 및 결제수단 선택 모달 -->
   <div class="modal-overlay" id="order-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <div class="modal-title">주문 내역 및 결제</div>
+        <div class="modal-title">주문 내역 확인</div>
         <button class="close-btn" onclick="closeOrderModal()">✕</button>
       </div>
 
@@ -246,11 +243,11 @@
         <span style="color: var(--primary-color);" id="modal-total-price">0원</span>
       </div>
 
-      <!-- 결제 수단 선택 라디오 버튼 -->
+      <!-- 결제 수단 선택 영역 -->
       <div style="font-size: 14px; font-weight: 700; margin-top: 12px;">결제 수단 선택</div>
       <div class="pay-options">
         <label class="pay-option-label selected" id="label-toss" onclick="selectPayOption('toss')">
-          <span>💙 토스로 계좌이체</span>
+          <span>💙 토스로 간편 송금</span>
           <input type="radio" name="payMethod" value="toss" checked>
         </label>
         <label class="pay-option-label" id="label-kakao" onclick="selectPayOption('kakao')">
@@ -258,18 +255,18 @@
           <input type="radio" name="payMethod" value="kakao">
         </label>
         <label class="pay-option-label" id="label-bank" onclick="selectPayOption('bank')">
-          <span>🏦 일반 계좌이체</span>
+          <span>🏦 계좌이체</span>
           <input type="radio" name="payMethod" value="bank">
         </label>
       </div>
 
-      <!-- 계좌번호 안내 영역 -->
+      <!-- 계좌 안내 -->
       <div class="bank-info-box" id="bank-info-display">
         입금 계좌: <b>토스뱅크 1234567890</b>
       </div>
 
       <button class="btn-order" style="width: 100%; padding: 16px; font-size: 18px;" onclick="handleFinalOrder()">
-        🚀 결제 앱 이동 및 주문확정
+        ✅ 결제 및 주문 확정
       </button>
     </div>
   </div>
@@ -295,7 +292,6 @@
       if (urlParams.has('table')) currentTable = urlParams.get('table');
       document.getElementById('table-display').innerText = `테이블 ${currentTable}`;
 
-      // 계좌 안내 기본 세팅
       document.getElementById('bank-info-display').innerHTML = `입금 계좌: <b>${CONFIG.BANK_NAME} ${CONFIG.ACCOUNT_NUMBER}</b>`;
       fetchMenu();
     });
@@ -403,14 +399,12 @@
       document.getElementById('order-modal').style.display = 'none';
     }
 
-    // 결제 수단 선택 옵션
     function selectPayOption(method) {
       selectedPayMethod = method;
       document.querySelectorAll('.pay-option-label').forEach(el => el.classList.remove('selected'));
       document.getElementById(`label-${method}`).classList.add('selected');
     }
 
-    // [결제 앱 이동 및 주문확정] 버튼 처리
     async function handleFinalOrder() {
       let totalPrice = 0;
       const items = Object.values(cart).map(c => {
@@ -418,7 +412,6 @@
         return { id: c.item.id, name: c.item.name, price: c.item.price, qty: c.qty };
       });
 
-      // 1. 주문 데이터 백엔드 전송
       const payload = {
         action: "order",
         table: currentTable,
@@ -435,7 +428,6 @@
 
         const data = await res.json();
         if (data.success) {
-          // 2. 결제 수단별 앱 이동 처리
           if (selectedPayMethod === 'toss') {
             const bank = encodeURIComponent(CONFIG.BANK_NAME);
             const account = CONFIG.ACCOUNT_NUMBER;
@@ -446,12 +438,12 @@
             }
           }
 
-          alert(`주문이 성공적으로 접수되었습니다!\n입금이 확인되는 대로 조리가 시작됩니다.`);
+          alert(`주문이 접수되었습니다!\n입금이 확인되면 조리가 시작됩니다.`);
           cart = {};
           updateCartBar();
           closeOrderModal();
         } else {
-          alert('주문 등록 실패: ' + data.message);
+          alert('주문 실패: ' + data.message);
         }
       } catch (err) {
         alert('서버 통신 중 오류가 발생했습니다.');
