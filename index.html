@@ -1,454 +1,643 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>청춘주막 — 스마트 주문</title>
-  <style>
-    :root {
-      --bg-main: #fcf8f2;
-      --card-bg: #ffffff;
-      --text-main: #2b2118;
-      --text-muted: #8c7a6b;
-      --border-color: #eee0d0;
-      --primary-color: #8b0000;
-      --accent-yellow: #f59e0b;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>청춘주막 - QR 주문</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          paper: '#F5EFDD',
+          ink: '#26221C',
+          flag: '#C23B22',
+          flagdark: '#9E2E19',
+          gold: '#C89B3C',
+          night: '#1F2A3C',
+          nightlight: '#2E3E56',
+          soju: '#4C7A5A',
+        },
+        fontFamily: {
+          display: ['"Black Han Sans"', 'sans-serif'],
+          body: ['"Noto Sans KR"', 'sans-serif'],
+        },
+        boxShadow: {
+          card: '0 2px 10px rgba(38,34,28,0.08)',
+          lift: '0 8px 24px rgba(38,34,28,0.18)',
+        }
+      }
     }
+  }
+</script>
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+<style>
+  body { font-family: 'Noto Sans KR', sans-serif; word-break: keep-all; }
+  .font-display { font-family: 'Black Han Sans', sans-serif; letter-spacing: 0.5px; }
+  ::-webkit-scrollbar { display: none; }
+  * { -ms-overflow-style: none; scrollbar-width: none; }
 
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-main);
-      padding-bottom: 90px;
-    }
+  .flag-edge::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -6px;
+    height: 8px;
+    background: linear-gradient(-45deg, transparent 4px, inherit 4px), linear-gradient(45deg, transparent 4px, inherit 4px);
+    background-size: 10px 10px;
+    background-repeat: repeat-x;
+  }
 
-    header {
-      position: sticky;
-      top: 0;
-      background-color: var(--bg-main);
-      border-bottom: 1px solid var(--border-color);
-      padding: 16px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 100;
-    }
+  .stamp {
+    border: 3.5px solid #C23B22;
+    color: #C23B22;
+    transform: rotate(-7deg);
+    box-shadow: 0 0 0 2px rgba(194,59,34,0.15);
+  }
 
-    .brand { font-size: 20px; font-weight: 800; color: var(--primary-color); }
-    .table-badge {
-      background-color: var(--primary-color);
-      color: #fff;
-      padding: 4px 12px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 700;
-    }
+  @keyframes stampIn {
+    0% { transform: rotate(-7deg) scale(2.2); opacity: 0; }
+    60% { transform: rotate(-7deg) scale(0.92); opacity: 1; }
+    100% { transform: rotate(-7deg) scale(1); opacity: 1; }
+  }
+  .stamp-anim { animation: stampIn 0.5s cubic-bezier(.2,.8,.3,1.1) both; }
 
-    .category-nav {
-      display: flex;
-      overflow-x: auto;
-      padding: 12px 16px;
-      gap: 8px;
-      background-color: var(--bg-main);
-      position: sticky;
-      top: 57px;
-      z-index: 90;
-      border-bottom: 1px solid var(--border-color);
-      white-space: nowrap;
-    }
-    .category-nav::-webkit-scrollbar { display: none; }
+  @keyframes slideUp {
+    from { transform: translateY(100%); } to { transform: translateY(0); }
+  }
+  .sheet-in { animation: slideUp 0.28s ease-out both; }
 
-    .cat-btn {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-muted);
-      cursor: pointer;
-    }
-    .cat-btn.active {
-      background-color: var(--primary-color);
-      color: #fff;
-      border-color: var(--primary-color);
-    }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .fade-in { animation: fadeIn 0.25s ease-out both; }
 
-    .menu-container { padding: 16px; display: grid; gap: 16px; }
-    .menu-card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+  @keyframes toastIn {
+    0% { transform: translate(-50%, 20px); opacity: 0; }
+    15% { transform: translate(-50%, 0); opacity: 1; }
+    85% { transform: translate(-50%, 0); opacity: 1; }
+    100% { transform: translate(-50%, 20px); opacity: 0; }
+  }
+  .toast-anim { animation: toastIn 1.8s ease-in-out both; }
 
-    .menu-info { flex: 1; padding-right: 12px; }
-    .menu-name { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
-    .menu-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
-    .menu-price { font-size: 16px; font-weight: 800; color: var(--primary-color); }
+  .menu-card.sold-out { filter: grayscale(1); opacity: 0.55; }
+  .qty-btn { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
-    .add-btn {
-      background-color: #f8f1e7;
-      color: var(--primary-color);
-      border: 1px solid var(--border-color);
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .cart-bar {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background-color: var(--card-bg);
-      border-top: 1px solid var(--border-color);
-      padding: 12px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 200;
-    }
-
-    .cart-info { font-size: 15px; font-weight: 600; }
-    .cart-total { font-size: 18px; font-weight: 800; color: var(--primary-color); }
-
-    .btn-order {
-      background-color: var(--primary-color);
-      color: #fff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    /* Modal Overlay */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0,0,0,0.5);
-      display: none;
-      justify-content: center;
-      align-items: flex-end;
-      z-index: 300;
-    }
-
-    .modal-content {
-      background-color: var(--card-bg);
-      width: 100%;
-      max-height: 85vh;
-      border-top-left-radius: 24px;
-      border-top-right-radius: 24px;
-      padding: 24px;
-      overflow-y: auto;
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .modal-title { font-size: 18px; font-weight: 800; }
-    .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
-
-    /* 모달 내부 결제 수단 추가 영역 */
-    .pay-options {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin: 12px 0;
-    }
-
-    .pay-option-label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 14px;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 700;
-      font-size: 14px;
-    }
-
-    .pay-option-label.selected {
-      border-color: var(--primary-color);
-      background-color: #fcf4f4;
-    }
-
-    .pay-option-label input[type="radio"] { display: none; }
-
-    .bank-info-box {
-      background-color: #faf6f0;
-      border: 1px solid var(--border-color);
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      color: var(--text-main);
-      text-align: center;
-      margin-bottom: 12px;
-    }
-  </style>
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+</style>
 </head>
-<body>
 
-  <header>
-    <div class="brand">🍶 청춘주막</div>
-    <div class="table-badge" id="table-display">테이블 --</div>
-  </header>
+<body class="bg-paper text-ink min-h-screen">
 
-  <nav class="category-nav" id="category-container">
-    <button class="cat-btn active" onclick="filterCategory('전체')">전체</button>
-  </nav>
+<!-- ============ 로딩 화면 ============ -->
+<div id="loading-screen" class="fixed inset-0 z-50 bg-paper flex flex-col items-center justify-center gap-3">
+  <div class="w-10 h-10 border-4 border-flag/20 border-t-flag rounded-full animate-spin"></div>
+  <p class="font-display text-base text-ink/70">메뉴판을 준비하는 중...</p>
+</div>
 
-  <main class="menu-container" id="menu-container">
-    <div style="text-align: center; padding: 40px; color: var(--text-muted);">메뉴를 불러오는 중입니다...</div>
-  </main>
+<!-- ============ 테이블 번호 확인/선택 모달 ============ -->
+<div id="table-modal" class="fixed inset-0 z-40 bg-ink/60 hidden overflow-y-auto">
+  <div class="min-h-[100dvh] flex items-center justify-center p-4">
+    <div class="bg-paper rounded-2xl w-full max-w-sm p-4 sm:p-5 shadow-lift fade-in my-8">
+      <p class="text-center text-3xl mb-1">🏮</p>
+      <h2 class="font-display text-xl sm:text-2xl text-center mb-1">테이블 번호를 확인해주세요</h2>
+      <p class="text-center text-xs sm:text-sm text-ink/60 mb-4">아래에서 현재 계신 테이블 번호를 선택해주세요</p>
 
-  <div class="cart-bar">
-    <div>
-      <div class="cart-info">총 <span id="cart-count">0</span>개 선택</div>
-      <div class="cart-total" id="cart-total-price">0원</div>
-    </div>
-    <button class="btn-order" onclick="openOrderModal()">주문하기</button>
-  </div>
+      <div id="table-quick-grid" class="grid grid-cols-4 gap-1.5 mb-5"></div>
 
-  <!-- 주문 및 결제수단 선택 모달 -->
-  <div class="modal-overlay" id="order-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-title">주문 내역 확인</div>
-        <button class="close-btn" onclick="closeOrderModal()">✕</button>
-      </div>
-
-      <!-- 내역 요약 -->
-      <div id="modal-cart-items" style="display: grid; gap: 8px; margin-bottom: 16px; max-height: 120px; overflow-y: auto;"></div>
-
-      <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; padding: 12px 0; border-top: 1px solid var(--border-color);">
-        <span>최종 결제 금액</span>
-        <span style="color: var(--primary-color);" id="modal-total-price">0원</span>
-      </div>
-
-      <!-- 결제 수단 선택 영역 -->
-      <div style="font-size: 14px; font-weight: 700; margin-top: 12px;">결제 수단 선택</div>
-      <div class="pay-options">
-        <label class="pay-option-label selected" id="label-toss" onclick="selectPayOption('toss')">
-          <span>💙 토스로 간편 송금</span>
-          <input type="radio" name="payMethod" value="toss" checked>
-        </label>
-        <label class="pay-option-label" id="label-kakao" onclick="selectPayOption('kakao')">
-          <span>💛 카카오페이 송금</span>
-          <input type="radio" name="payMethod" value="kakao">
-        </label>
-        <label class="pay-option-label" id="label-bank" onclick="selectPayOption('bank')">
-          <span>🏦 계좌이체</span>
-          <input type="radio" name="payMethod" value="bank">
-        </label>
-      </div>
-
-      <!-- 계좌 안내 -->
-      <div class="bank-info-box" id="bank-info-display">
-        입금 계좌: <b>토스뱅크 1234567890</b>
-      </div>
-
-      <button class="btn-order" style="width: 100%; padding: 16px; font-size: 18px;" onclick="handleFinalOrder()">
-        ✅ 결제 및 주문 확정
+      <button id="table-confirm-btn" disabled
+        class="w-full bg-ink/20 text-white font-display text-lg py-3 rounded-xl transition-colors">
+        이 테이블로 입장하기
       </button>
     </div>
   </div>
+</div>
 
-  <script>
-    // ==========================================
-    // ⚙️ 사장님 설정 영역
-    // ==========================================
-    const CONFIG = {
-      SCRIPT_URL: "https://script.google.com/macros/s/AKfycbzNlkiaA2BNRU-Lr_b6XczmuUxboEcvtU0ywd5uEVO8uoWPKXQykwiB4XlcowsuGT2x/exec",
-      BANK_NAME: "토스뱅크",        // 은행명
-      ACCOUNT_NUMBER: "100052382872",   // 계좌번호 (숫자만)
-      KAKAO_PAY_LINK: "https://qr.kakaopay.com/FHocQNtEp" // 카카오페이 송금 링크
-    };
+<!-- ============ 메인 메뉴 화면 ============ -->
+<div id="view-menu" class="hidden pb-28">
 
-    let allMenu = [];
-    let cart = {};
-    let currentTable = "1";
-    let selectedPayMethod = "toss";
+  <header class="relative bg-flag flag-edge text-paper pt-5 pb-6 px-4 mb-2">
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex-1 min-w-0">
+        <p class="text-[10px] tracking-widest text-paper/70 mb-0.5">2026 대동제 · 청춘주막</p>
+        <h1 class="font-display text-xl sm:text-2xl leading-snug break-keep">오늘 여기,<br>주모가 쏜다 🍶</h1>
+      </div>
+      <div class="bg-paper text-flag rounded-xl px-3 py-2 text-center shadow-card shrink-0">
+        <p class="text-[10px] font-bold text-ink/50 leading-none mb-1">TABLE</p>
+        <p id="table-badge" class="font-display text-2xl leading-none">-</p>
+      </div>
+    </div>
+  </header>
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('table')) currentTable = urlParams.get('table');
-      document.getElementById('table-display').innerText = `테이블 ${currentTable}`;
+  <!-- 카테고리 탭 -->
+  <nav id="category-tabs" class="sticky top-0 z-20 bg-paper/95 backdrop-blur px-3 py-2 flex gap-1.5 overflow-x-auto border-b border-ink/10"></nav>
 
-      document.getElementById('bank-info-display').innerHTML = `입금 계좌: <b>${CONFIG.BANK_NAME} ${CONFIG.ACCOUNT_NUMBER}</b>`;
-      fetchMenu();
-    });
+  <!-- 메뉴 리스트 -->
+  <main id="menu-list" class="px-3 pt-3 space-y-2.5"></main>
 
-    async function fetchMenu() {
-      try {
-        const res = await fetch(`${CONFIG.SCRIPT_URL}?action=menu`);
-        const data = await res.json();
-        if (data.success) {
-          allMenu = data.menu || [];
-          renderCategoryNav();
-          renderMenu('전체');
-        }
-      } catch (err) {
-        document.getElementById('menu-container').innerHTML = `<div style="text-align:center; padding: 40px;">메뉴를 불러오지 못했습니다.</div>`;
-      }
-    }
+  <!-- 하단 고정 장바구니 바 -->
+  <div id="cart-bar" class="hidden fixed left-0 right-0 bottom-0 z-30 px-3 pb-3">
+    <button id="cart-bar-btn" class="w-full bg-night text-paper rounded-xl shadow-lift px-4 py-3 flex items-center justify-between active:scale-[0.98] transition-transform">
+      <span class="flex items-center gap-2 font-bold text-sm sm:text-base">
+        <span id="cart-count" class="bg-flag text-paper text-xs w-5 h-5 rounded-full flex items-center justify-center font-display">0</span>
+        장바구니 보기
+      </span>
+      <span id="cart-total" class="font-display text-lg text-gold">0원</span>
+    </button>
+  </div>
+</div>
 
-    function renderCategoryNav() {
-      const categories = ['전체', ...new Set(allMenu.map(m => m.category))];
-      const navContainer = document.getElementById('category-container');
-      navContainer.innerHTML = categories.map((cat, idx) => `
-        <button class="cat-btn ${idx === 0 ? 'active' : ''}" onclick="filterCategory('${cat}', this)">${cat}</button>
-      `).join('');
-    }
+<!-- ============ 장바구니 바텀시트 ============ -->
+<div id="cart-drawer-overlay" class="hidden fixed inset-0 z-40 bg-ink/60"></div>
+<div id="cart-drawer" class="hidden fixed left-0 right-0 bottom-0 z-50 bg-paper rounded-t-2xl max-h-[85vh] flex flex-col sheet-in">
+  <div class="flex items-center justify-between px-4 pt-4 pb-3 border-b border-ink/10">
+    <h2 class="font-display text-xl">장바구니</h2>
+    <button id="cart-close-btn" class="text-ink/40 text-2xl leading-none px-2">&times;</button>
+  </div>
+  <div id="cart-items" class="flex-1 overflow-y-auto px-4 py-2 space-y-3"></div>
+  <div class="px-4 pt-3 pb-5 border-t border-ink/10 bg-paper">
+    <div class="flex justify-between items-center mb-3">
+      <span class="text-ink/60 font-bold text-sm">총 결제금액</span>
+      <span id="cart-drawer-total" class="font-display text-xl text-flag">0원</span>
+    </div>
+    <button id="goto-checkout-btn" class="w-full bg-flag text-paper font-display text-lg py-3 rounded-xl active:scale-[0.98] transition-transform disabled:opacity-40">
+      주문하기
+    </button>
+  </div>
+</div>
 
-    function filterCategory(cat, btn) {
-      if (btn) {
-        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      }
-      renderMenu(cat);
-    }
+<!-- ============ 주문/결제 안내 화면 ============ -->
+<div id="view-checkout" class="hidden min-h-screen pb-8">
+  <header class="bg-night text-paper px-4 pt-5 pb-4 flex items-center gap-2">
+    <button id="checkout-back-btn" class="text-xl px-1">&larr;</button>
+    <h1 class="font-display text-xl">주문 확인 &amp; 입금 안내</h1>
+  </header>
 
-    function renderMenu(category) {
-      const container = document.getElementById('menu-container');
-      const filtered = category === '전체' ? allMenu : allMenu.filter(m => m.category === category);
+  <main class="px-4 pt-4 space-y-3">
+    <!-- 주문 요약 카드 -->
+    <section class="bg-white rounded-xl shadow-card p-4">
+      <div class="flex justify-between items-center mb-2">
+        <h2 class="font-bold text-base">주문 내역</h2>
+        <span class="bg-ink/5 text-ink/60 text-xs font-bold px-2 py-1 rounded-full">테이블 <span id="checkout-table">-</span>번</span>
+      </div>
+      <div id="checkout-items" class="divide-y divide-ink/10"></div>
+      <div class="flex justify-between items-center pt-3 mt-2 border-t-2 border-ink/10">
+        <span class="font-bold text-sm">총 금액</span>
+        <span id="checkout-total" class="font-display text-xl text-flag">0원</span>
+      </div>
+    </section>
 
-      if (filtered.length === 0) {
-        container.innerHTML = `<div style="text-align:center; padding: 40px; color: var(--text-muted);">등록된 메뉴가 없습니다.</div>`;
-        return;
-      }
+    <!-- 입금 계좌 카드 -->
+    <section class="bg-flag text-paper rounded-xl shadow-lift p-4 relative overflow-hidden">
+      <p class="font-display text-base mb-2">아래 계좌로 입금해주세요</p>
+      <div class="bg-white/15 rounded-lg p-3 space-y-1 mb-3">
+        <p class="text-xs text-paper/80"><span id="bank-name">-</span></p>
+        <p id="account-number" class="font-display text-base tracking-wide">-</p>
+        <p class="text-xs text-paper/80">예금주: <span id="account-holder">-</span></p>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button id="copy-account-btn" class="bg-paper text-flag font-bold py-2.5 rounded-lg text-sm active:scale-[0.98] transition-transform">
+          계좌번호 복사
+        </button>
+        <button id="toss-pay-btn" class="bg-night text-paper font-bold py-2.5 rounded-lg text-sm active:scale-[0.98] transition-transform">
+          💙 토스로 송금
+        </button>
+      </div>
+      <p class="text-[11px] text-paper/80 mt-3 text-center leading-relaxed">입금자명은 <b>테이블 번호 + 이름</b>으로 남겨주시면<br>확인이 훨씬 빨라요!</p>
+    </section>
 
-      container.innerHTML = filtered.map(item => `
-        <div class="menu-card">
-          <div class="menu-info">
-            <div class="menu-name">${item.name}</div>
-            <div class="menu-desc">${item.description || ''}</div>
-            <div class="menu-price">${item.price.toLocaleString()}원</div>
-          </div>
-          <button class="add-btn" onclick="addToCart('${item.id}')">+ 담기</button>
+    <div class="bg-gold/15 border border-gold/40 rounded-xl p-3 text-center">
+      <p class="font-bold text-ink/80 text-xs">입금 후, 아래 버튼을 눌러 주문을 완료해주세요</p>
+    </div>
+
+    <button id="submit-order-btn" class="w-full bg-ink text-paper font-display text-lg py-4 rounded-xl shadow-lift active:scale-[0.98] transition-transform">
+      입금 완료, 주문 완료하기
+    </button>
+  </main>
+</div>
+
+<!-- ============ 주문 완료 화면 ============ -->
+<div id="view-complete" class="hidden min-h-screen flex flex-col items-center justify-center px-5 text-center fade-in">
+  <div class="stamp stamp-anim w-40 h-40 rounded-full flex flex-col items-center justify-center mb-5 px-4 text-center">
+    <p class="font-display text-[11px] opacity-80">ORDER</p>
+    <p id="complete-order-number" class="font-display text-base leading-tight my-1 break-all w-full">-</p>
+    <p class="font-display text-[11px] opacity-80">완료</p>
+  </div>
+  <h1 class="font-display text-2xl mb-2">주문이 접수됐어요!</h1>
+  <p class="text-ink/60 text-sm mb-1">테이블 <span id="complete-table" class="font-bold">-</span>번, 조금만 기다려주세요 🍻</p>
+  <p class="text-ink/40 text-xs mb-6">입금 확인 후 순서대로 서빙해드립니다</p>
+  <button id="new-order-btn" class="bg-night text-paper font-bold text-sm px-5 py-2.5 rounded-lg">
+    추가 주문하기
+  </button>
+</div>
+
+<!-- ============ 에러/토스트 ============ -->
+<div id="toast" class="hidden fixed bottom-24 left-1/2 z-50 bg-ink text-paper text-xs font-bold px-4 py-2.5 rounded-full shadow-lift whitespace-nowrap"></div>
+
+<div id="error-screen" class="hidden fixed inset-0 z-50 bg-paper flex flex-col items-center justify-center px-6 text-center">
+  <h2 class="font-display text-xl mb-2">연결에 문제가 있어요</h2>
+  <p id="error-message" class="text-ink/60 mb-5 text-xs">잠시 후 다시 시도해주세요</p>
+  <button id="error-retry-btn" class="bg-flag text-paper font-bold text-sm px-5 py-2.5 rounded-lg">다시 시도</button>
+</div>
+
+<script>
+/* =========================================================
+   설정값 — 배포 전 반드시 수정하세요
+   ========================================================= */
+const CONFIG = {
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwRXoXbpTCvYZfdRp7pTyoToKlnwoooLw7hzSLhTM2rvAYUsbMWSYEk2eFlIsaTHe8hzg/exec",
+  SHOP_NAME: "청춘주막",
+  BANK_NAME: "토스뱅크",
+  ACCOUNT_NUMBER: "1000-5238-2872",
+  ACCOUNT_HOLDER: "서준영",
+  MAX_TABLE: 30,
+};
+
+/* =========================================================
+   상태
+   ========================================================= */
+const state = {
+  tableNumber: null,
+  menu: [],
+  categories: [],
+  activeCategory: null,
+  cart: {},
+};
+
+const $ = (id) => document.getElementById(id);
+const won = (n) => n.toLocaleString('ko-KR') + '원';
+
+/* =========================================================
+   초기화
+   ========================================================= */
+async function init() {
+  resolveTableNumber();
+  await loadMenu();
+  $('loading-screen').classList.add('hidden');
+
+  if (state.tableNumber) {
+    showMenuScreen();
+  } else {
+    openTableModal();
+  }
+}
+
+function resolveTableNumber() {
+  const params = new URLSearchParams(window.location.search);
+  const t = parseInt(params.get('table'), 10);
+  if (!isNaN(t) && t > 0 && t <= 999) {
+    state.tableNumber = t;
+  }
+}
+
+/* =========================================================
+   테이블 선택 모달
+   ========================================================= */
+function openTableModal() {
+  const grid = $('table-quick-grid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= CONFIG.MAX_TABLE; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    btn.className = 'py-2 rounded-lg border-2 border-ink/15 font-bold text-sm text-ink/70 active:bg-flag active:text-paper active:border-flag transition-colors';
+    btn.onclick = () => selectTableNumber(i, btn, grid);
+    grid.appendChild(btn);
+  }
+
+  const confirmBtn = $('table-confirm-btn');
+  let selected = null;
+
+  function enableConfirm(n) {
+    selected = n;
+    confirmBtn.disabled = false;
+    confirmBtn.classList.remove('bg-ink/20');
+    confirmBtn.classList.add('bg-flag');
+  }
+
+  window.selectTableNumber = (n, btn, grid) => {
+    [...grid.children].forEach(b => b.classList.remove('bg-flag', 'text-paper', 'border-flag'));
+    btn.classList.add('bg-flag', 'text-paper', 'border-flag');
+    enableConfirm(n);
+  };
+
+  confirmBtn.onclick = () => {
+    if (!selected) return;
+    state.tableNumber = selected;
+    const url = new URL(window.location.href);
+    url.searchParams.set('table', selected);
+    window.history.replaceState({}, '', url);
+    $('table-modal').classList.add('hidden');
+    $('table-modal').classList.remove('block'); 
+    showMenuScreen();
+  };
+
+  $('table-modal').classList.remove('hidden');
+  $('table-modal').classList.add('block'); 
+}
+
+/* =========================================================
+   메뉴 로드
+   ========================================================= */
+async function loadMenu() {
+  try {
+    const res = await fetch(`${CONFIG.SCRIPT_URL}?action=menu`);
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || '메뉴를 불러오지 못했습니다');
+    state.menu = data.menu;
+    state.categories = [...new Set(data.menu.map(m => m.category))];
+    state.activeCategory = state.categories[0] || null;
+  } catch (err) {
+    console.error(err);
+    showError('메뉴를 불러오지 못했어요. 네트워크 상태를 확인해주세요.', init);
+  }
+}
+
+/* =========================================================
+   메뉴 화면 렌더링
+   ========================================================= */
+function showMenuScreen() {
+  $('table-badge').textContent = state.tableNumber;
+  renderCategoryTabs();
+  renderMenuList();
+  $('view-menu').classList.remove('hidden');
+}
+
+function renderCategoryTabs() {
+  const nav = $('category-tabs');
+  nav.innerHTML = '';
+  state.categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.textContent = cat;
+    btn.className = 'shrink-0 px-3 py-1.5 rounded-full font-bold text-xs border-2 transition-colors ' +
+      (cat === state.activeCategory
+        ? 'bg-flag text-paper border-flag'
+        : 'bg-transparent text-ink/50 border-ink/15');
+    btn.onclick = () => { state.activeCategory = cat; renderCategoryTabs(); renderMenuList(); };
+    nav.appendChild(btn);
+  });
+}
+
+function renderMenuList() {
+  const list = $('menu-list');
+  list.innerHTML = '';
+  const items = state.menu.filter(m => m.category === state.activeCategory);
+
+  items.forEach(item => {
+    const inCart = state.cart[item.id];
+    const card = document.createElement('div');
+    card.className = 'menu-card bg-white rounded-xl shadow-card p-3 flex items-center gap-2' + (item.soldOut ? ' sold-out' : '');
+
+    card.innerHTML = `
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1.5 mb-0.5">
+          <h3 class="font-bold text-sm truncate">${escapeHtml(item.name)}</h3>
+          ${item.soldOut ? '<span class="shrink-0 text-[10px] font-bold bg-ink/70 text-paper px-1.5 py-0.5 rounded-full">품절</span>' : ''}
         </div>
-      `).join('');
-    }
+        <p class="text-[11px] text-ink/50 mb-1 line-clamp-2">${escapeHtml(item.description || '')}</p>
+        <p class="font-display text-base text-gold">${won(item.price)}</p>
+      </div>
+      <div class="shrink-0" data-qty-area></div>
+    `;
 
-    function addToCart(menuId) {
-      const item = allMenu.find(m => m.id === menuId);
-      if (!item) return;
+    const qtyArea = card.querySelector('[data-qty-area]');
+    renderQtyControl(qtyArea, item);
+    list.appendChild(card);
+  });
 
-      if (cart[menuId]) {
-        cart[menuId].qty += 1;
-      } else {
-        cart[menuId] = { item, qty: 1 };
-      }
-      updateCartBar();
-    }
+  updateCartBar();
+}
 
-    function updateCartBar() {
-      let totalCount = 0;
-      let totalPrice = 0;
-      Object.values(cart).forEach(c => {
-        totalCount += c.qty;
-        totalPrice += c.item.price * c.qty;
-      });
+function renderQtyControl(container, item) {
+  const entry = state.cart[item.id];
+  if (item.soldOut) {
+    container.innerHTML = `<button class="w-14 py-1.5 rounded-lg bg-ink/10 text-ink/30 font-bold text-xs" disabled>품절</button>`;
+    return;
+  }
+  if (!entry) {
+    container.innerHTML = `<button class="qty-btn w-14 py-1.5 rounded-lg bg-night text-paper font-bold text-xs active:scale-95 transition-transform">담기</button>`;
+    container.querySelector('button').onclick = () => { addToCart(item); renderMenuList(); };
+  } else {
+    container.innerHTML = `
+      <div class="flex items-center gap-1 bg-ink/5 rounded-lg p-1">
+        <button data-act="minus" class="qty-btn w-6 h-6 rounded-md bg-white shadow-sm font-bold text-sm">-</button>
+        <span class="w-4 text-center font-bold text-xs">${entry.qty}</span>
+        <button data-act="plus" class="qty-btn w-6 h-6 rounded-md bg-white shadow-sm font-bold text-sm">+</button>
+      </div>`;
+    container.querySelector('[data-act=minus]').onclick = () => { changeQty(item.id, -1); renderMenuList(); };
+    container.querySelector('[data-act=plus]').onclick = () => { changeQty(item.id, 1); renderMenuList(); };
+  }
+}
 
-      document.getElementById('cart-count').innerText = totalCount;
-      document.getElementById('cart-total-price').innerText = `${totalPrice.toLocaleString()}원`;
-    }
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
 
-    function openOrderModal() {
-      if (Object.keys(cart).length === 0) {
-        alert('메뉴를 선택해 주세요!');
-        return;
-      }
+/* =========================================================
+   장바구니 로직
+   ========================================================= */
+function addToCart(item) { state.cart[item.id] = { item, qty: 1 }; }
+function changeQty(id, delta) {
+  const entry = state.cart[id];
+  if (!entry) return;
+  entry.qty += delta;
+  if (entry.qty <= 0) delete state.cart[id];
+}
+function cartArray() { return Object.values(state.cart); }
+function cartTotal() { return cartArray().reduce((s, e) => s + e.item.price * e.qty, 0); }
+function cartCount() { return cartArray().reduce((s, e) => s + e.qty, 0); }
 
-      const container = document.getElementById('modal-cart-items');
-      let totalPrice = 0;
+function updateCartBar() {
+  const count = cartCount();
+  $('cart-count').textContent = count;
+  $('cart-total').textContent = won(cartTotal());
+  $('cart-bar').classList.toggle('hidden', count === 0);
+}
 
-      container.innerHTML = Object.values(cart).map(c => {
-        const subtotal = c.item.price * c.qty;
-        totalPrice += subtotal;
-        return `
-          <div style="display: flex; justify-content: space-between; font-size: 14px;">
-            <div><b>${c.item.name}</b> x${c.qty}</div>
-            <div>${subtotal.toLocaleString()}원</div>
-          </div>
-        `;
-      }).join('');
+/* 장바구니 드로어 */
+function openCartDrawer() {
+  renderCartDrawer();
+  $('cart-drawer-overlay').classList.remove('hidden');
+  $('cart-drawer').classList.remove('hidden');
+}
+function closeCartDrawer() {
+  $('cart-drawer-overlay').classList.add('hidden');
+  $('cart-drawer').classList.add('hidden');
+}
+function renderCartDrawer() {
+  const wrap = $('cart-items');
+  wrap.innerHTML = '';
+  const arr = cartArray();
+  if (arr.length === 0) {
+    wrap.innerHTML = `<p class="text-center text-ink/40 text-sm py-8">장바구니가 비어있어요</p>`;
+  }
+  arr.forEach(({ item, qty }) => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center justify-between';
+    row.innerHTML = `
+      <div class="min-w-0 pr-2">
+        <p class="font-bold text-sm truncate">${escapeHtml(item.name)}</p>
+        <p class="text-xs text-ink/50">${won(item.price)}</p>
+      </div>
+      <div class="flex items-center gap-1 bg-ink/5 rounded-lg p-1 shrink-0">
+        <button data-act="minus" class="qty-btn w-6 h-6 rounded-md bg-white shadow-sm font-bold text-sm">-</button>
+        <span class="w-4 text-center font-bold text-xs">${qty}</span>
+        <button data-act="plus" class="qty-btn w-6 h-6 rounded-md bg-white shadow-sm font-bold text-sm">+</button>
+      </div>
+    `;
+    row.querySelector('[data-act=minus]').onclick = () => { changeQty(item.id, -1); renderCartDrawer(); updateCartBar(); };
+    row.querySelector('[data-act=plus]').onclick = () => { changeQty(item.id, 1); renderCartDrawer(); updateCartBar(); };
+    wrap.appendChild(row);
+  });
+  $('cart-drawer-total').textContent = won(cartTotal());
+  $('goto-checkout-btn').disabled = arr.length === 0;
+}
 
-      document.getElementById('modal-total-price').innerText = `${totalPrice.toLocaleString()}원`;
-      document.getElementById('order-modal').style.display = 'flex';
-    }
+/* =========================================================
+   결제/주문 확인 화면
+   ========================================================= */
+function showCheckoutScreen() {
+  closeCartDrawer();
+  $('checkout-table').textContent = state.tableNumber;
+  $('checkout-total').textContent = won(cartTotal());
 
-    function closeOrderModal() {
-      document.getElementById('order-modal').style.display = 'none';
-    }
+  const wrap = $('checkout-items');
+  wrap.innerHTML = '';
+  cartArray().forEach(({ item, qty }) => {
+    const row = document.createElement('div');
+    row.className = 'flex justify-between py-2 text-xs';
+    row.innerHTML = `<span>${escapeHtml(item.name)} <span class="text-ink/40">x${qty}</span></span><span class="font-bold">${won(item.price * qty)}</span>`;
+    wrap.appendChild(row);
+  });
 
-    function selectPayOption(method) {
-      selectedPayMethod = method;
-      document.querySelectorAll('.pay-option-label').forEach(el => el.classList.remove('selected'));
-      document.getElementById(`label-${method}`).classList.add('selected');
-    }
+  $('bank-name').textContent = CONFIG.BANK_NAME;
+  $('account-number').textContent = CONFIG.ACCOUNT_NUMBER;
+  $('account-holder').textContent = CONFIG.ACCOUNT_HOLDER;
 
-    async function handleFinalOrder() {
-      let totalPrice = 0;
-      const items = Object.values(cart).map(c => {
-        totalPrice += c.item.price * c.qty;
-        return { id: c.item.id, name: c.item.name, price: c.item.price, qty: c.qty };
-      });
+  $('view-menu').classList.add('hidden');
+  $('view-checkout').classList.remove('hidden');
+}
 
-      const payload = {
-        action: "order",
-        table: currentTable,
-        items: items,
-        totalAmount: totalPrice
-      };
+function copyAccountNumber() {
+  const text = CONFIG.ACCOUNT_NUMBER;
+  const done = () => showToast('계좌번호가 복사되었어요');
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+  } else {
+    fallbackCopy(text, done);
+  }
+}
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); cb(); } catch (e) { showToast('복사에 실패했어요'); }
+  document.body.removeChild(ta);
+}
 
-      try {
-        const res = await fetch(CONFIG.SCRIPT_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
+function openTossApp() {
+  const bank = encodeURIComponent(CONFIG.BANK_NAME);
+  const account = CONFIG.ACCOUNT_NUMBER.replace(/[^0-9]/g, '');
+  const amount = cartTotal();
+  window.location.href = `supertoss://send?bank=${bank}&accountNo=${account}&origin=link&amount=${amount}`;
+}
 
-        const data = await res.json();
-        if (data.success) {
-          if (selectedPayMethod === 'toss') {
-            const bank = encodeURIComponent(CONFIG.BANK_NAME);
-            const account = CONFIG.ACCOUNT_NUMBER;
-            window.location.href = `supertoss://send?bank=${bank}&accountNo=${account}&origin=link&amount=${totalPrice}`;
-          } else if (selectedPayMethod === 'kakao') {
-            if (CONFIG.KAKAO_PAY_LINK && !CONFIG.KAKAO_PAY_LINK.includes("YOUR_")) {
-              window.location.href = CONFIG.KAKAO_PAY_LINK;
-            }
-          }
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.remove('hidden');
+  t.classList.remove('toast-anim'); void t.offsetWidth; t.classList.add('toast-anim');
+  setTimeout(() => t.classList.add('hidden'), 1800);
+}
 
-          alert(`주문이 접수되었습니다!\n입금이 확인되면 조리가 시작됩니다.`);
-          cart = {};
-          updateCartBar();
-          closeOrderModal();
-        } else {
-          alert('주문 실패: ' + data.message);
-        }
-      } catch (err) {
-        alert('서버 통신 중 오류가 발생했습니다.');
-      }
-    }
-  </script>
+/* =========================================================
+   주문 제출
+   ========================================================= */
+async function submitOrder() {
+  const btn = $('submit-order-btn');
+  btn.disabled = true;
+  btn.textContent = '주문을 접수하는 중...';
+
+  const payload = {
+    action: 'order',
+    table: state.tableNumber,
+    items: cartArray().map(({ item, qty }) => ({ id: item.id, name: item.name, price: item.price, qty })),
+    totalAmount: cartTotal(),
+  };
+
+  try {
+    const res = await fetch(CONFIG.SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message || '주문 처리 중 오류가 발생했습니다');
+
+    showCompleteScreen(data.orderNumber);
+  } catch (err) {
+    console.error(err);
+    showError('주문 접수에 실패했어요. 다시 시도해주세요.', () => {
+      hideError();
+      submitOrder();
+    });
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '입금 완료, 주문 완료하기';
+  }
+}
+
+function showCompleteScreen(orderNumber) {
+  $('complete-order-number').textContent = orderNumber;
+  $('complete-table').textContent = state.tableNumber;
+  $('view-checkout').classList.add('hidden');
+  $('view-complete').classList.remove('hidden');
+}
+
+function resetForNewOrder() {
+  state.cart = {};
+  $('view-complete').classList.add('hidden');
+  $('view-menu').classList.remove('hidden');
+  renderMenuList();
+}
+
+/* =========================================================
+   에러 화면
+   ========================================================= */
+let retryFn = null;
+function showError(msg, retry) {
+  $('error-message').textContent = msg;
+  retryFn = retry;
+  $('error-screen').classList.remove('hidden');
+  $('error-screen').classList.add('flex');
+}
+function hideError() {
+  $('error-screen').classList.add('hidden');
+  $('error-screen').classList.remove('flex');
+}
+
+/* =========================================================
+   이벤트 바인딩
+   ========================================================= */
+$('cart-bar-btn').onclick = openCartDrawer;
+$('cart-drawer-overlay').onclick = closeCartDrawer;
+$('cart-close-btn').onclick = closeCartDrawer;
+$('goto-checkout-btn').onclick = showCheckoutScreen;
+$('checkout-back-btn').onclick = () => { $('view-checkout').classList.add('hidden'); $('view-menu').classList.remove('hidden'); };
+$('copy-account-btn').onclick = copyAccountNumber;
+$('toss-pay-btn').onclick = openTossApp;
+$('submit-order-btn').onclick = submitOrder;
+$('new-order-btn').onclick = resetForNewOrder;
+$('error-retry-btn').onclick = () => { if (retryFn) retryFn(); };
+
+init();
+</script>
 </body>
 </html>
