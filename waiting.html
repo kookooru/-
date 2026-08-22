@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>청춘주막 - 웨이팅 시스템</title>
+<title>청춘주막 - 웨이팅 등록</title>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -17,21 +17,9 @@
   }
 </script>
 </head>
-<body class="bg-paper text-ink font-body min-h-screen p-4">
+<body class="bg-paper text-ink font-body min-h-screen p-4 flex items-center justify-center">
 
-<!-- 앱스크립트 URL 설정 -->
-<script>
-  const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // 본인 앱스크립트 배포 URL 입력
-</script>
-
-<!-- 모드 전환 탭 (손님용 / 관리자용) -->
-<div class="max-w-md mx-auto mb-4 flex gap-2">
-  <button id="tab-user" onclick="switchTab('user')" class="flex-1 py-2 font-display bg-flag text-paper rounded-xl shadow">손님 등록용</button>
-  <button id="tab-admin" onclick="switchTab('admin')" class="flex-1 py-2 font-display bg-night text-paper/50 rounded-xl">관리자 전용</button>
-</div>
-
-<!-- ================= 손님용 웨이팅 등록 ================= -->
-<div id="view-user" class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-5">
+<div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
   <h1 class="font-display text-2xl text-center text-flag mb-1">🏮 청춘주막 대기 등록</h1>
   <p class="text-xs text-center text-ink/60 mb-6">성함과 연락처를 남겨주시면 순서대로 안내해 드립니다.</p>
 
@@ -54,46 +42,23 @@
     </button>
   </form>
 
-  <!-- 완료 메시지 카드 -->
+  <!-- 접수 완료 안내 카드 -->
   <div id="result-card" class="hidden mt-6 text-center border-2 border-flag/30 bg-paper p-4 rounded-xl">
     <p class="text-xs font-bold text-ink/60">대기 접수가 완료되었습니다!</p>
-    <p class="font-display text-3xl text-flag my-1">대기 <span id="res-num">0</span>번</p>
-    <p class="text-xs text-ink/80">순서가 되면 전화로 안내해 드립니다 🍻</p>
-  </div>
-</div>
-
-<!-- ================= 관리자용 대기열 관리 ================= -->
-<div id="view-admin" class="hidden max-w-md mx-auto bg-white rounded-2xl shadow-lg p-5">
-  <div class="flex justify-between items-center mb-4">
-    <h2 class="font-display text-xl text-night">📋 실시간 대기목록</h2>
-    <button onclick="loadAdminList()" class="bg-night/10 text-night text-xs font-bold px-3 py-1.5 rounded-lg">새로고침</button>
-  </div>
-
-  <div id="admin-list" class="space-y-3 max-h-[70vh] overflow-y-auto">
-    <p class="text-center text-xs text-ink/40 py-8">목록을 불러오는 중...</p>
+    <p class="font-display text-3xl text-flag my-1">대기 등록 완료</p>
+    <p class="text-xs text-ink/80">순서가 되면 전화로 안내해 드리겠습니다 🍻</p>
   </div>
 </div>
 
 <script>
-  function switchTab(mode) {
-    if (mode === 'user') {
-      document.getElementById('view-user').classList.remove('hidden');
-      document.getElementById('view-admin').classList.add('hidden');
-      document.getElementById('tab-user').className = "flex-1 py-2 font-display bg-flag text-paper rounded-xl shadow";
-      document.getElementById('tab-admin').className = "flex-1 py-2 font-display bg-night text-paper/50 rounded-xl";
-    } else {
-      document.getElementById('view-user').classList.add('hidden');
-      document.getElementById('view-admin').classList.remove('hidden');
-      document.getElementById('tab-user').className = "flex-1 py-2 font-display bg-flag text-paper/50 rounded-xl";
-      document.getElementById('tab-admin').className = "flex-1 py-2 font-display bg-night text-paper rounded-xl shadow";
-      loadAdminList();
-    }
-  }
+  // 본인의 앱스크립트 배포 URL로 변경해 주세요!
+  const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; 
 
-  // 1. 손님 웨이팅 등록
   async function registerWaiting(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-submit');
+    const resultCard = document.getElementById('result-card');
+    
     btn.disabled = true;
     btn.innerText = '접수 중...';
 
@@ -105,88 +70,25 @@
     };
 
     try {
-      const res = await fetch(SCRIPT_URL, {
+      // mode: 'no-cors'를 사용하여 앱스크립트 전송 오류 방지
+      await fetch(SCRIPT_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      const data = await res.json();
-      if (data.success) {
-        document.getElementById('res-num').innerText = data.waitNum;
-        document.getElementById('result-card').classList.remove('hidden');
-        document.getElementById('waiting-form').reset();
-      }
+
+      // 성공 시 완료 카드 표시 및 폼 초기화
+      resultCard.classList.remove('hidden');
+      document.getElementById('waiting-form').reset();
     } catch (err) {
-      alert('접수 중 오류가 발생했습니다.');
+      alert('접수 중 오류가 발생했습니다. 다시 시도해 주세요.');
     } finally {
       btn.disabled = false;
       btn.innerText = '대기표 뽑기';
     }
   }
-
-  // 2. 관리자 목록 가져오기
-  async function loadAdminList() {
-    const listWrap = document.getElementById('admin-list');
-    listWrap.innerHTML = `<p class="text-center text-xs text-ink/40 py-8">불러오는 중...</p>`;
-
-    try {
-      const res = await fetch(`${SCRIPT_URL}?action=list`);
-      const data = await res.json();
-      if (data.success) {
-        renderAdminList(data.list);
-      }
-    } catch (err) {
-      listWrap.innerHTML = `<p class="text-center text-xs text-flag py-8">오류가 발생했습니다.</p>`;
-    }
-  }
-
-  // 3. 관리자 목록 렌더링 및 상태 변경 버튼
-  function renderAdminList(list) {
-    const listWrap = document.getElementById('admin-list');
-    if (!list || list.length === 0) {
-      listWrap.innerHTML = `<p class="text-center text-xs text-ink/40 py-8">현재 대기팀이 없습니다.</p>`;
-      return;
-    }
-
-    listWrap.innerHTML = list.reverse().map(item => `
-      <div class="border border-ink/10 rounded-xl p-3 flex items-center justify-between bg-paper/30">
-        <div>
-          <div class="flex items-center gap-2 mb-1">
-            <span class="font-display text-lg text-flag">#${item.waitNum}</span>
-            <span class="font-bold text-sm">${item.name} (${item.count}명)</span>
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${getStatusStyle(item.status)}">${item.status}</span>
-          </div>
-          <p class="text-xs text-ink/60">${item.phone}</p>
-        </div>
-        
-        <div class="flex gap-1">
-          <button onclick="updateStatus(${item.rowNum}, '입장')" class="px-2.5 py-1 text-xs font-bold bg-soju text-white rounded-lg">입장</button>
-          <button onclick="updateStatus(${item.rowNum}, '대기')" class="px-2.5 py-1 text-xs font-bold bg-gold text-white rounded-lg">대기</button>
-          <button onclick="updateStatus(${item.rowNum}, '취소')" class="px-2.5 py-1 text-xs font-bold bg-ink/20 text-ink rounded-lg">취소</button>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  function getStatusStyle(status) {
-    if (status === '입장') return 'bg-soju/20 text-soju';
-    if (status === '대기') return 'bg-gold/20 text-gold';
-    return 'bg-ink/10 text-ink/40';
-  }
-
-  // 4. 상태 변경 함수 (입장 / 대기 / 취소)
-  async function updateStatus(rowNum, status) {
-    try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'updateStatus', rowNum, status })
-      });
-      loadAdminList();
-    } catch (err) {
-      alert('상태 변경 실패');
-    }
-  }
 </script>
+
 </body>
 </html>
