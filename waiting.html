@@ -30,7 +30,7 @@
     </div>
     <div>
       <label class="block text-xs font-bold mb-1">전화번호</label>
-      <input type="tel" id="cust-phone" required placeholder="010-1234-5678" class="w-full border-2 border-ink/15 rounded-xl p-3 text-sm focus:outline-none focus:border-flag">
+      <input type="tel" id="cust-phone" required placeholder="1234-5678" class="w-full border-2 border-ink/15 rounded-xl p-3 text-sm focus:outline-none focus:border-flag">
     </div>
     <div>
       <label class="block text-xs font-bold mb-1">방문 인원수</label>
@@ -42,22 +42,20 @@
     </button>
   </form>
 
-  <!-- 접수 완료 안내 카드 -->
+  <!-- 접수 완료 안내 카드 (대기 번호 출력 제거) -->
   <div id="result-card" class="hidden mt-6 text-center border-2 border-flag/30 bg-paper p-4 rounded-xl">
-    <p class="text-xs font-bold text-ink/60">대기 접수가 완료되었습니다!</p>
-    <p class="text-xs text-ink/80">순서가 되면 전화로 안내해 드리겠습니다 🍻</p>
+    <p class="text-sm font-bold text-ink/80 mb-1">대기 접수가 완료되었습니다! 🎉</p>
+    <p class="text-xs text-ink/60">순서가 되면 전화로 안내해 드리겠습니다 🍻</p>
   </div>
 </div>
 
 <script>
-  // 본인의 앱스크립트 배포 URL
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby9p8Om4wxPwmf_2-fZe6pFkuPPVfsNWfKgVvQtzp_p9I4z2JEd_gRk658s0HPrVhUR/exec"; 
 
   async function registerWaiting(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-submit');
     const resultCard = document.getElementById('result-card');
-    const waitNumberSpan = document.getElementById('wait-number');
     
     btn.disabled = true;
     btn.innerText = '접수 중...';
@@ -70,7 +68,6 @@
     };
 
     try {
-      // mode: 'no-cors' 제거 및 text/plain 전송 방식을 통해 Apps Script 리다이렉트 및 데이터 손실 해결
       const response = await fetch(SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -80,7 +77,6 @@
       const result = await response.json();
 
       if (result.success) {
-        waitNumberSpan.innerText = result.waitNum;
         resultCard.classList.remove('hidden');
         document.getElementById('waiting-form').reset();
       } else {
